@@ -138,7 +138,7 @@ This component is the starting page of the AI Summary App. When the page loads, 
 
 Visit the app in your browser again to verify the changes took effect.
 
-> [SCREENSHOT PLACEHOLDER — After updating `app/page.tsx`, capture a screenshot of the minimal UI and save it here.]
+![alt text](screenshots/t1-starter-page-minimal.png)
 
 Start a new terminal
 Let's commit this frontend scaffold as our first feature:
