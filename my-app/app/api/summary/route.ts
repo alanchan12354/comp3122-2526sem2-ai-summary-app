@@ -2,15 +2,19 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
-import pdfParse from 'pdf-parse';
+// @ts-ignore - bypassing next.js issue with pdf-parse
+import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // strictly server-side
-});
+// initialize lazily inside handler to prevent build errors
+function getOpenAI() {
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY || 'dummy_for_build', // strictly server-side
+  });
+}
 
 export async function POST(request: Request) {
   try {
@@ -63,6 +67,7 @@ export async function POST(request: Request) {
     }
 
     // Use OpenAI to summarize
+    const openai = getOpenAI();
     const chatCompletion = await openai.chat.completions.create({
       messages: [
         { role: 'system', content: 'You are a helpful assistant that summarizes documents. Provide a concise summary of the following text, highlighting the main points.' },
