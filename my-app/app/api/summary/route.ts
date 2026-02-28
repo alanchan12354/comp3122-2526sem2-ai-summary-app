@@ -19,6 +19,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No file name provided' }, { status: 400 });
     }
 
+    // Check if summary already exists in the database
+    const { data: existingRecord, error: dbFetchError } = await supabase
+      .from('document_summaries')
+      .select('summary')
+      .eq('file_name', fileName)
+      .single();
+
+    if (existingRecord?.summary) {
+      console.log('Returning existing summary from database');
+      return NextResponse.json({ summary: existingRecord.summary }, { status: 200 });
+    }
+
     // Download the file from Supabase
     const { data: fileData, error: downloadError } = await supabase.storage
       .from('documents')
@@ -62,6 +74,15 @@ export async function POST(request: Request) {
     });
 
     const summary = chatCompletion.choices[0]?.message?.content || 'Could not generate summary.';
+
+    // Save the summary to the database
+    const { error: dbInsertError } = await supabase
+      .from('document_summaries')
+      .upsert({ file_name: fileName, summary: summary });
+
+    if (dbInsertError) {
+      console.error('Supabase DB Insert Error:', dbInsertError);
+    }
 
     return NextResponse.json({ summary }, { status: 200 });
 
